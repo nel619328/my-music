@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spotify Pro Image Controls</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:black;
+color:white;
+overflow:hidden;
+}
+
+/* BACKGROUND */
+.bg{
+position:fixed;
+inset:0;
+background-size:cover;
+background-position:center;
+filter:blur(35px);
+transform:scale(1.2);
+z-index:-2;
+}
+
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.55);
+z-index:-1;
+}
+
+/* PLAYER */
+.player{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+width:90%;
+}
+
+.cover{
+width:300px;
+height:300px;
+border-radius:25px;
+box-shadow:0 20px 50px rgba(0,0,0,0.7);
+}
+
+h2{margin-top:15px;font-size:22px;}
+p{opacity:0.7}
+
+/* CONTROLS  */
+.controls{
+margin-top:15px;
+display:flex;
+justify-content:center;
+align-items:center;
+gap:20px;
+}
+
+.controls button{
+background:none;
+border:none;
+cursor:pointer;
+}
+
+.controls img{
+width:45px;
+height:45px;
+transition:0.2s;
+}
+
+.controls img:hover{
+transform:scale(1.15);
+}
+
+/* PROGRESS */
+#progress{
+width:100%;
+margin-top:10px;
+}
+
+/* SONG BUTTON */
+.open{
+margin-top:15px;
+padding:10px;
+background:rgba(255,255,255,0.1);
+border-radius:10px;
+cursor:pointer;
+}
+
+/* PLAYLIST */
+.sheet{
+position:fixed;
+inset:0;
+background:#121212;
+padding:20px;
+transform:translateY(100%);
+transition:0.35s;
+overflow-y:auto;
+z-index:20;
+}
+
+.sheet.active{
+transform:translateY(0);
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.close{
+font-size:26px;
+cursor:pointer;
+}
+
+/* SONG */
+.song{
+padding:15px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+cursor:pointer;
+}
+
+/* EQUALIZER */
+.wave{
+display:flex;
+justify-content:center;
+align-items:flex-end;
+height:90px;
+gap:4px;
+margin-top:15px;
+}
+
+.bar{
+width:6px;
+height:20px;
+border-radius:6px;
+animation:wave 0.9s infinite ease-in-out;
+animation-play-state: paused;
+}
+
+.bar:nth-child(1){background:linear-gradient(#ff004c,#ff7b00);animation-delay:0.1s;}
+.bar:nth-child(2){background:linear-gradient(#ff00d4,#7a00ff);animation-delay:0.2s;}
+.bar:nth-child(3){background:linear-gradient(#00c3ff,#0051ff);animation-delay:0.3s;}
+.bar:nth-child(4){background:linear-gradient(#00ff95,#00ff3c);animation-delay:0.4s;}
+.bar:nth-child(5){background:linear-gradient(#ffe600,#ff9900);animation-delay:0.5s;}
+.bar:nth-child(6){background:linear-gradient(#ff004c,#ff00a6);animation-delay:0.6s;}
+.bar:nth-child(7){background:linear-gradient(#00fff2,#00b7ff);animation-delay:0.7s;}
+.bar:nth-child(8){background:linear-gradient(#b300ff,#ff00f7);animation-delay:0.8s;}
+.bar:nth-child(9){background:linear-gradient(#00ff6a,#00ffea);animation-delay:0.9s;}
+
+@keyframes wave{
+0%,100%{height:20px;opacity:0.6;}
+50%{height:85px;opacity:1;}
+}
+
+/* MINI */
+.mini{
+position:fixed;
+bottom:-120px;
+left:0;
+width:100%;
+height:120px;
+background:#181818;
+border-radius:20px 20px 0 0;
+display:flex;
+align-items:center;
+padding:10px;
+transition:0.3s;
+z-index:30;
+}
+
+.mini img{
+width:60px;
+height:60px;
+border-radius:10px;
+margin-right:10px;
+}
+
+.mini.active{
+bottom:0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+<div class="overlay"></div>
+
+<!-- PLAYER -->
+<div class="player">
+
+<img id="cover" class="cover">
+
+<h2 id="title"></h2>
+<p id="artist"></p>
+
+<!-- EQUALIZER -->
+<div class="wave">
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+<div class="bar"></div>
+</div>
+
+<audio id="audio"></audio>
+
+<input type="range" id="progress">
+
+<!-- IMAGE CONTROLS -->
+<div class="controls">
+
+<button onclick="prev()">
+<img src="icons/prev.png">
+</button>
+
+<button onclick="togglePlay()" id="playBtn">
+<img src="icons/play.png" id="playIcon">
+</button>
+
+<button onclick="next()">
+<img src="icons/next.png">
+</button>
+
+</div>
+
+<div class="open" onclick="openList()">Songs</div>
+
+</div>
+
+<!-- PLAYLIST -->
+<div class="sheet" id="sheet">
+
+<div class="header">
+<h2>SONGS</h2>
+<div class="close" onclick="closeList()">✕</div>
+</div>
+
+<div id="list"></div>
+
+</div>
+
+<!-- MINI -->
+<div class="mini" id="mini">
+<img id="miniImg">
+<div>
+<div id="miniTitle"></div>
+<div id="miniArtist" style="opacity:0.6;font-size:12px"></div>
+</div>
+</div>
+
+<script>
+const songs=[
+{
+title:"Miles Can't Change Us",
+artist:"abugtong490",
+file:"song1.mp3",
+cover:"cover1.jpg",
+logo:"logo1.jpg"
+},
+{
+title:"Perfect",
+artist:"Ed Sheeran",
+file:"song2.mp3",
+cover:"cover2.jpg",
+logo:"logo2.jpg"
+},
+{
+title:"Until I Found You",
+artist:"Stephen Sanchez",
+file:"song3.mp3",
+cover:"cover3.jpg",
+logo:"logo3.jpg"
+}
+];
+
+let index=0;
+
+const audio=document.getElementById("audio");
+const cover=document.getElementById("cover");
+const title=document.getElementById("title");
+const artist=document.getElementById("artist");
+const bg=document.querySelector(".bg");
+const progress=document.getElementById("progress");
+
+const playIcon=document.getElementById("playIcon");
+
+/* MINI */
+const mini=document.getElementById("mini");
+const miniImg=document.getElementById("miniImg");
+const miniTitle=document.getElementById("miniTitle");
+const miniArtist=document.getElementById("miniArtist");
+
+/* WAVE */
+const bars=document.querySelectorAll(".bar");
+
+function updateWave(){
+bars.forEach(b=>{
+b.style.animationPlayState = audio.paused ? "paused" : "running";
+});
+}
+
+/* LOAD SONG */
+function loadSong(i){
+let s=songs[i];
+
+audio.src=s.file;
+cover.src=s.cover;
+title.textContent=s.title;
+artist.textContent=s.artist;
+
+bg.style.backgroundImage=`url(${s.cover})`;
+
+miniImg.src=s.logo || s.cover;
+miniTitle.textContent=s.title;
+miniArtist.textContent=s.artist;
+
+audio.play();
+playIcon.src="icons/pause.png";
+
+updateWave();
+}
+
+/* PLAY */
+function togglePlay(){
+if(audio.paused){
+audio.play();
+playIcon.src="icons/pause.png";
+}else{
+audio.pause();
+playIcon.src="icons/play.png";
+}
+updateWave();
+}
+
+function next(){
+index=(index+1)%songs.length;
+loadSong(index);
+}
+
+function prev(){
+index=(index-1+songs.length)%songs.length;
+loadSong(index);
+}
+
+/* PROGRESS */
+audio.addEventListener("timeupdate",()=>{
+progress.value=(audio.currentTime/audio.duration)*100;
+});
+
+progress.addEventListener("input",()=>{
+audio.currentTime=(progress.value/100)*audio.duration;
+});
+
+/* PLAYLIST */
+function openList(){
+document.getElementById("sheet").classList.add("active");
+}
+
+function closeList(){
+document.getElementById("sheet").classList.remove("active");
+}
+
+/* SONG LIST */
+const list=document.getElementById("list");
+
+songs.forEach((s,i)=>{
+let div=document.createElement("div");
+div.className="song";
+div.innerHTML=`
+<div style="display:flex;align-items:center;gap:12px">
+<img src="${s.logo}" style="width:45px;height:45px;border-radius:10px">
+<div>
+<div>${s.title}</div>
+<div style="font-size:11px;opacity:0.6">${s.artist}</div>
+</div>
+</div>
+`;
+
+div.onclick=()=>{
+index=i;
+loadSong(i);
+closeList();
+};
+
+list.appendChild(div);
+});
+
+loadSong(0);
+</script>
+
+</body>
+</html>
